@@ -20,11 +20,11 @@ class Permutation(tf.keras.Model):
         permutation_vec = np.random.permutation(input_dim)
         inv_permutation_vec = np.argsort(permutation_vec)
         self.permutation = tf.Variable(initial_value=permutation_vec,
-                                       trainable=False, 
+                                       trainable=False,
                                        dtype=tf.int32,
                                        name='permutation')
         self.inv_permutation = tf.Variable(initial_value=inv_permutation_vec,
-                                           trainable=False, 
+                                           trainable=False,
                                            dtype=tf.int32,
                                            name='inv_permutation')
 
@@ -197,7 +197,7 @@ class DeepConditionalModel(tf.keras.Model):
         """
 
         super(DeepConditionalModel, self).__init__()
-        
+
         self.cINNs = [ConditionalInvertibleBlock(meta, theta_dim, alpha=alpha, permute=permute) for _ in range(n_blocks)]
         self.summary_net = summary_net
         self.theta_dim = theta_dim
@@ -251,7 +251,7 @@ class DeepConditionalModel(tf.keras.Model):
         """
         Samples from the inverse model given a single instance y or a batch of instances.
         ----------
-        
+
         Arguments:
         x         : tf.Tensor of shape (batch_size, summary_dim) -- the conditioning data of interest
         n_samples : int -- number of samples to obtain from the approximate posterior
@@ -294,23 +294,23 @@ class InvariantModule(tf.keras.Model):
         h_dim   : int -- the number of hidden units in each of the modules
         n_dense : int -- the number of dense layers of the modules
         """
-        
+
         super(InvariantModule, self).__init__()
-        
+
         self.module = tf.keras.Sequential([
-            tf.keras.layers.Dense(h_dim, activation='elu', kernel_initializer='glorot_uniform') 
+            tf.keras.layers.Dense(h_dim, activation='elu', kernel_initializer='glorot_uniform')
             for _ in range(n_dense)
         ])
 
-        self.post_pooling_dense = tf.keras.layers.Dense(h_dim, activation='elu', kernel_initializer='glorot_uniform')   
-        
+        self.post_pooling_dense = tf.keras.layers.Dense(h_dim, activation='elu', kernel_initializer='glorot_uniform')
+
     def call(self, x):
         """
         Transofrms the input into an invariant representation.
         ----------
 
         Arguments:
-        x : tf.Tensor of shape (batch_size, n, m) - the input where n is the 'time' or 'samples' dimensions 
+        x : tf.Tensor of shape (batch_size, n, m) - the input where n is the 'time' or 'samples' dimensions
             over which pooling is performed and m is the input dimensionality
         ----------
 
@@ -322,7 +322,7 @@ class InvariantModule(tf.keras.Model):
         x = tf.reduce_mean(x, axis=1)
         out = self.post_pooling_dense(x)
         return out
-    
+
 
 class EquivariantModule(tf.keras.Model):
     """Implements an equivariant nn module as proposed by Bloem-Reddy and Teh (2019)."""
@@ -338,23 +338,23 @@ class EquivariantModule(tf.keras.Model):
         h_dim   : int -- the number of hidden units in each of the modules
         n_dense : int -- the number of dense layers of the modules
         """
-        
+
         super(EquivariantModule, self).__init__()
-        
+
         self.module = tf.keras.Sequential([
-            tf.keras.layers.Dense(h_dim, activation='elu') 
+            tf.keras.layers.Dense(h_dim, activation='elu')
             for _ in range(n_dense)
         ])
-        
+
         self.invariant_module = InvariantModule(h_dim, n_dense)
-        
+
     def call(self, x):
         """
         Transofrms the input into an equivariant representation.
         ----------
 
         Arguments:
-        x : tf.Tensor of shape (batch_size, n, m) - the input where n is the 'time' or 'samples' dimensions 
+        x : tf.Tensor of shape (batch_size, n, m) - the input where n is the 'time' or 'samples' dimensions
             over which pooling is performed and m is the input dimensionality
         ----------
 
@@ -367,43 +367,43 @@ class EquivariantModule(tf.keras.Model):
         x = tf.concat((x_inv, x), axis=-1)
         out = self.module(x)
         return out
-    
+
 
 class InvariantNetwork(tf.keras.Model):
     """
-    Implements a network which parameterizes a 
+    Implements a network which parameterizes a
     permutationally invariant function according to Bloem-Reddy and Teh (2019).
     """
 
     def __init__(self, h_dim, n_dense=3, n_equiv=2):
         """
-        Creates a permutationally invariant network 
+        Creates a permutationally invariant network
         consisting of two equivariant modules and one invariant module.
         ----------
 
         Arguments:
         h_dim   : int -- the number of hidden units in each of the modules
         n_dense : int -- the number of dense layers of the modules
-        n_equiv : int -- the number of equivariant modules 
+        n_equiv : int -- the number of equivariant modules
         """
-        
+
         super(InvariantNetwork, self).__init__()
-        
+
         self.equiv = tf.keras.Sequential([
             EquivariantModule(h_dim, n_dense)
             for _ in range(n_equiv)
         ])
         self.inv = InvariantModule(h_dim, n_dense)
-        
+
     def call(self, x, **kwargs):
         """
-        Transofrms the input into a permutationally invariant 
-        representation by first passing it through multiple equivariant 
+        Transofrms the input into a permutationally invariant
+        representation by first passing it through multiple equivariant
         modules in order to increase representational power.
         ----------
 
         Arguments:
-        x : tf.Tensor of shape (batch_size, n, m) - the input where n is the 'time' or 
+        x : tf.Tensor of shape (batch_size, n, m) - the input where n is the 'time' or
         'samples' dimensions over which pooling is performed and m is the input dimensionality
         ----------
 
@@ -414,6 +414,10 @@ class InvariantNetwork(tf.keras.Model):
         x = self.equiv(x)
         out = self.inv(x)
         return out
+
+
+
+
 
 
 class DeepEvidentialModel(tf.keras.Model):
