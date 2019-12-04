@@ -50,7 +50,7 @@ def plot_true_est_scatter(model, X_test, theta_test, n_samples, param_names,
         # Compute NRMSE
         rmse = np.sqrt(np.mean( (theta_approx_means[:, j] - theta_test[:, j])**2 ))
         nrmse = rmse / (theta_test[:, j].max() - theta_test[:, j].min())
-        axarr[j].text(0.1, 0.9, 'NRMSE={:.3f}'.format(nrmse),
+        axarr[j].text(0.65, 0.2, 'NRMSE={:.3f}'.format(nrmse),
                      horizontalalignment='left',
                      verticalalignment='center',
                      transform=axarr[j].transAxes,
@@ -58,7 +58,7 @@ def plot_true_est_scatter(model, X_test, theta_test, n_samples, param_names,
 
         # Compute R2
         r2 = r2_score(theta_test[:, j], theta_approx_means[:, j])
-        axarr[j].text(0.1, 0.8, '$R^2$={:.3f}'.format(r2),
+        axarr[j].text(0.65, 0.1, '$R^2$={:.3f}'.format(r2),
                      horizontalalignment='left',
                      verticalalignment='center',
                      transform=axarr[j].transAxes,
@@ -80,7 +80,7 @@ def plot_true_est_scatter(model, X_test, theta_test, n_samples, param_names,
 
     # Save if specified
     if filename is not None:
-        f.savefig("figures/{}_{}n_scatter.png".format(filename, X_test.shape[1]), dpi=600)
+        f.savefig("figures/{}_scatter.png".format(filename), dpi=600)
 
 
 def plot_losses(losses, figsize=(15, 5), show=True):
@@ -324,7 +324,7 @@ def plot_true_est_posterior_samples(theta_samples, theta_test, param_names, figs
     f, axarr = plt.subplots(n_test, len(param_names), figsize=figsize)
     axarr = np.atleast_2d(axarr)
 
-    theta_samples_means  = np.mean(theta_samples, axis=0, keepdims=1)
+    theta_samples_means  = np.mean(theta_samples, axis=0)
 
     # For each row
     for i in range(n_test):
@@ -354,7 +354,7 @@ def plot_true_est_posterior_samples(theta_samples, theta_test, param_names, figs
                 axarr[i, j].set_title(param_names[j])
 
             if i == 0 and j == 0:
-                f.legend(loc='lower center', bbox_to_anchor=(0.5, -0.03), shadow=True, ncol=3, fontsize=10, borderaxespad=1)
+                f.legend(loc='lower center', bbox_to_anchor=(0.5, -0.032), shadow=True, ncol=3, fontsize=10, borderaxespad=1)
                 #axarr[i, j].legend(fontsize=10)
 
     if tight:
@@ -366,7 +366,7 @@ def plot_true_est_posterior_samples(theta_samples, theta_test, param_names, figs
 
     # Save if specified
     if filename is not None:
-        f.savefig("figures/{}_{}n_density.png".format(filename, X_test.shape[1]), dpi=600, bbox_inches='tight')
+        f.savefig("figures/{}_density.png".format(filename), dpi=600, bbox_inches='tight')
 
 
 def plot_sbc(model, n_samples, X_test, theta_test, param_names, bins=None,
@@ -416,4 +416,4 @@ def plot_sbc(model, n_samples, X_test, theta_test, param_names, bins=None,
         plt.show()
     # Save if specified
     if filename is not None:
-        f.savefig("figures/{}_{}n_sbc.png".format(filename, X_test.shape[1]), dpi=600)
+        f.savefig("figures/{}_sbc.png".format(filename), dpi=600)
