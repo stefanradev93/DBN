@@ -3,6 +3,7 @@ from matplotlib.ticker import FormatStrFormatter
 import seaborn as sns
 import numpy as np
 from sklearn.metrics import r2_score
+from scipy.stats import binom
 
 
 
@@ -369,15 +370,16 @@ def plot_true_est_posterior_samples(theta_samples, theta_test, param_names, figs
         f.savefig("figures/{}_density.png".format(filename), dpi=600, bbox_inches='tight')
 
 
-def plot_sbc(model, n_samples, X_test, theta_test, param_names, bins=None,
-            figsize=(15, 5), show=True, filename=None, font_size=12):
+def plot_sbc(theta_samples, theta_test, param_names, bins=20,
+             figsize=(15, 5), interval=0.99, show=True, filename=None, font_size=12):
     """
     Plots the simulation-based posterior checking histograms as advocated by Talts et al. (2018).
     """
 
     # Plot settings
     plt.rcParams['font.size'] = font_size
-
+    N = int(theta_test.shape[0])
+    
     # Prepare figure
     if len(param_names) >= 6:
         n_col = int(np.ceil(len(param_names) / 2))
@@ -390,27 +392,32 @@ def plot_sbc(model, n_samples, X_test, theta_test, param_names, bins=None,
     if n_row > 1:
         axarr = axarr.flat
 
-    # Convert theta test to numpy
-    theta_test = theta_test.numpy()
-
-    # Sample from approximate posterior
-    theta_samples = model.sample(X_test, n_samples, to_numpy=True)
-
-    # Compute ranks (using broadcasting)
-    ranks = np.sum(theta_samples < theta_test, axis=0)
+    # Compute ranks (using broadcasting)    
+    ranks = np.sum(theta_samples < theta_test[:, np.newaxis, :], axis=1)
+    
+    # Compute interval
+    endpoints = binom.interval(interval, N, 1 / (bins+1))
 
     # Plot histograms
     for j in range(len(param_names)):
-        sns.distplot(ranks[:, j], kde=False, ax=axarr[j], rug=True, hist_kws=dict(edgecolor="k", linewidth=1), bins=bins)
+        
+        
+        # Add interval
+        axarr[j].axhspan(endpoints[0], endpoints[1], facecolor='gray', alpha=0.3)
+        axarr[j].axhline(np.mean(endpoints), color='gray', zorder=0, alpha=0.5)
+        
+        sns.distplot(ranks[:, j], kde=False, ax=axarr[j], color='#a34f4f',
+                         hist_kws=dict(edgecolor="k", linewidth=1,alpha=1.), bins=bins)
+        
         axarr[j].set_title(param_names[j])
         axarr[j].spines['right'].set_visible(False)
         axarr[j].spines['top'].set_visible(False)
         if j == 0:
             axarr[j].set_xlabel('Rank statistic')
         axarr[j].get_yaxis().set_ticks([])
-
+        
     f.tight_layout()
-
+    
     # Show, if specified
     if show:
         plt.show()
