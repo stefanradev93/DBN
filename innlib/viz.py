@@ -7,7 +7,7 @@ from scipy.stats import binom
 
 
 
-def plot_true_est_scatter(model, X_test, theta_test, n_samples, param_names,
+def plot_true_est_scatter(model, X_test, theta_test, n_samples, param_names, aggregator=np.mean,
                           figsize=(20, 4), theta_approx_means=None, show=True, filename=None, font_size=12):
     """Plots a scatter plot with abline of the estimated posterior means vs true values."""
 
@@ -33,7 +33,7 @@ def plot_true_est_scatter(model, X_test, theta_test, n_samples, param_names,
 
     # Initialize posterior means matrix, if nose specified
     if theta_approx_means is None:
-        theta_approx_means = model.sample(X_test, n_samples, to_numpy=True).mean(axis=0)
+        theta_approx_means = aggregator(model.sample(X_test, n_samples, to_numpy=True), axis=0)
 
     # --- Plot true vs estimated posterior means on a single row --- #
     for j in range(len(param_names)):
